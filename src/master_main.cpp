@@ -49,6 +49,7 @@ void writeUART(void *pvParameters) {
             SoftSerial.print(msg);
             Serial.println("Sent RISING EDGE message");
         }
+        wdt_reset();
         last = current;
     }
 }
@@ -58,6 +59,8 @@ void setup() {
     SoftSerial.begin(9600);
 
     trigQueue = xQueueCreate(10, sizeof(bool));
+
+    wdt_enable(WDTO_2S);
 
     pinMode(TRIG_PIN, INPUT);
 
