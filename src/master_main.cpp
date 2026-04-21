@@ -15,8 +15,8 @@
 
 QueueHandle_t trigQueue;
 
-SoftwareSerial SoftSerial(MASTER_SE_RX_PIN, MASTER_SE_TX_PIN);  // RX, TX
-// SoftwareSerial SoftSerial(MASTER_DIFF_RX_PIN, MASTER_DIFF_TX_PIN);  // RX, TX
+// SoftwareSerial SoftSerial(MASTER_SE_RX_PIN, MASTER_SE_TX_PIN);  // RX, TX
+SoftwareSerial SoftSerial(MASTER_DIFF_RX_PIN, MASTER_DIFF_TX_PIN);  // RX, TX
 
 char msg[] = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 

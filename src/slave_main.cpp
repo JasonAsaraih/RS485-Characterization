@@ -10,13 +10,17 @@ char msg[] = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_
 #define SLAVE_DIFF_TX_PIN 12
 #define SLAVE_DIFF_RX_PIN 5
 
-SoftwareSerial softSerial(SLAVE_SE_RX_PIN, SLAVE_SE_TX_PIN);  // RX, TX
-// SoftwareSerial softSerial(SLAVE_DIFF_RX_PIN, SLAVE_DIFF_TX_PIN);  // RX, TX
+// SoftwareSerial softSerial(SLAVE_SE_RX_PIN, SLAVE_SE_TX_PIN);  // RX, TX
+SoftwareSerial softSerial(SLAVE_DIFF_RX_PIN, SLAVE_DIFF_TX_PIN);  // RX, TX
 
 const int MSG_LEN = 95;
 
 char buffer[MSG_LEN];
 int index = 0;
+unsigned long startTime = 0;
+bool timeOut = false;
+unsigned long counter = 0;
+
 
 // =====================
 // LCS FUNCTION (2-row DP, memory safe)
@@ -67,46 +71,44 @@ void setup() {
 // LOOP
 // =====================
 void loop() {
-    // Receive full message
+    index = 0;
+    timeOut = false;
+    memset(buffer, 0, sizeof(buffer));
+
+    unsigned long startTime = millis();
+    Serial.print(counter);
+    counter++;
     digitalWrite(8, HIGH); // Trigger master to send
+    
     while (index < MSG_LEN) {
         if (softSerial.available()) {
-            buffer[index++] = softSerial.read();
+            int c = softSerial.read();
+            if (c >= 0) {
+                buffer[index++] = (char)c;
+            }
         }
+
+        if (millis() - startTime > 3000UL) {
+            timeOut = true;
+            break;
+        }
+
         delayMicroseconds(5);
     }
 
-    Serial.println("Received:");
-
-    for (int i = 0; i < MSG_LEN; i++) {
-        Serial.write(buffer[i]);
-    }
-    Serial.println();
-
-    // =====================
-    // LCS ACCURACY
-    // =====================
-    int lcs = lcsLength(msg, buffer, MSG_LEN, MSG_LEN);
-
-    float accuracy = (lcs * 100.0) / MSG_LEN;
-    int errors = MSG_LEN - lcs;
-
-    // Serial.println("---------------------------------------------------");
-    // Serial.print("LCS Length: ");
-    // Serial.println(lcs);
-
-    Serial.print("Accuracy (%): ");
-    Serial.println(accuracy);
-
-    // Serial.print("Error Count: ");
-    // Serial.println(errors);
-    // Serial.println("---------------------------------------------------");
-
-    // Stop master from resending
     digitalWrite(8, LOW);
 
-    delay(100);
+    if (!timeOut && index == MSG_LEN) {
+        int lcs = lcsLength(msg, buffer, MSG_LEN, MSG_LEN);
+        float accuracy = (lcs * 100.0) / MSG_LEN;
 
+        Serial.print("Accuracy (%): ");
+        Serial.println(accuracy);
+    } else {
+        Serial.println("ERROR: Timeout while waiting for message");
+    }
+
+    delay(10);
 }
 
 // #include <Arduino.h>
