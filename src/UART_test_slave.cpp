@@ -4,7 +4,14 @@
 // Full ASCII test message
 char msg[] = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
-SoftwareSerial softSerial(10, 11);
+#define SLAVE_SE_TX_PIN 11
+#define SLAVE_SE_RX_PIN 10
+
+#define SLAVE_DIFF_TX_PIN 12
+#define SLAVE_DIFF_RX_PIN 3
+
+// SoftwareSerial softSerial(SLAVE_SE_RX_PIN, SLAVE_SE_TX_PIN);  // RX, TX
+SoftwareSerial softSerial(SLAVE_DIFF_RX_PIN, SLAVE_DIFF_TX_PIN);  // RX, TX
 
 const int MSG_LEN = 95;
 
@@ -65,6 +72,7 @@ void loop() {
         if (softSerial.available()) {
             buffer[index++] = softSerial.read();
         }
+        delayMicroseconds(5);
     }
 
     Serial.println("Received:");

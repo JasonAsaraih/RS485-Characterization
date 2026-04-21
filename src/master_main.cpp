@@ -15,8 +15,8 @@
 
 QueueHandle_t trigQueue;
 
-SoftwareSerial singledEndedSoftSerial(MASTER_SE_RX_PIN, MASTER_SE_TX_PIN);  // RX, TX
-SoftwareSerial differentialSoftSerial(MASTER_DIFF_RX_PIN, MASTER_DIFF_TX_PIN);  // RX, TX
+SoftwareSerial SoftSerial(MASTER_SE_RX_PIN, MASTER_SE_TX_PIN);  // RX, TX
+// SoftwareSerial SoftSerial(MASTER_DIFF_RX_PIN, MASTER_DIFF_TX_PIN);  // RX, TX
 
 char msg[] = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
@@ -38,37 +38,28 @@ void updateTrigState(void *pvParameters) {
     }
 }
 
-void readUART(void *pvParameters) {
+void writeUART(void *pvParameters) {
     bool current, last = LOW;
 
     while (1) {
         xQueueReceive(trigQueue, &current, portMAX_DELAY);
 
         if (isRisingEdge(current, last)) {
-            singledEndedSoftSerial.print(msg);
+            vTaskDelay(pdMS_TO_TICKS(50)); // small stabilization delay
+            SoftSerial.print(msg);
             Serial.println("Sent RISING EDGE message");
         }
-
-        if (isFallingEdge(current, last)) {
-            differentialSoftSerial.print(msg);
-            Serial.println("Sent FALLING EDGE message");
-        }
-
         last = current;
     }
 }
 
 void setup() {
     Serial.begin(9600);
-    singledEndedSoftSerial.begin(9600);
-    differentialSoftSerial.begin(9600);
+    SoftSerial.begin(9600);
 
     trigQueue = xQueueCreate(10, sizeof(bool));
 
     pinMode(TRIG_PIN, INPUT);
-    pinMode(RS485_PIN, OUTPUT);
-
-    digitalWrite(RS485_PIN, HIGH); // Set MAX3485 to always sending mode
 
     xTaskCreate(
         updateTrigState,
@@ -80,8 +71,8 @@ void setup() {
     );
 
     xTaskCreate(
-        readUART,
-        "SE UART Read Task",
+        writeUART,
+        "SE UART Write Task",
         128,
         NULL,
         1,

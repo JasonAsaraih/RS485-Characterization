@@ -3,7 +3,14 @@
 
 char msg[] = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
-SoftwareSerial softSerial(10, 11);  // RX, TX
+#define MASTER_SE_TX_PIN 11
+#define MASTER_SE_RX_PIN 10
+
+#define MASTER_DIFF_TX_PIN 12
+#define MASTER_DIFF_RX_PIN 13
+
+// SoftwareSerial softSerial(MASTER_SE_RX_PIN, MASTER_SE_TX_PIN);  // RX, TX
+SoftwareSerial softSerial(MASTER_DIFF_RX_PIN, MASTER_DIFF_TX_PIN);  // RX, TX
 
 bool sent = false;
 
